@@ -200,6 +200,26 @@ button {
 	min-width: unset;
 }
 
+#summary-tab-section .rc {
+	max-width: 46%;
+}
+.st-i {
+	/*min-width: unset;*/
+	max-width: unset;
+	/*width: 95px;*/
+}
+.st-d,.st-u,.st-c,.st-pt {
+	/*min-width: unset;*/
+	max-width: unset;
+	/*width: 56px;*/
+}
+.st-t {
+	/*min-width: unset;*/
+	max-width: unset;
+	width: 100%;
+}
+
+
 #monthly-breakdown-tab-section .main-section > p {
 	text-align: center;
 }

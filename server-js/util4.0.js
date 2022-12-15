@@ -910,7 +910,8 @@ function setButtonsActions(){
 			return cip>=lower && cip<=upper;
 		});
 	};			
-	$('#blank-acon-row .dest-ip').click(function(e){
+	$('#blank-acon-con .dest-ip').click(function(e){
+		var domain='https://usage-monitoring.com/'
 		if($(this).hasClass('ipfnd')){
 			return false;
 		}
