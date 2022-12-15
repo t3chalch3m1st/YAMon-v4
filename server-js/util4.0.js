@@ -775,6 +775,26 @@ function setButtonsActions(){
 		$(this).addClass('filter')
 		activeConnections()
 	})
+	$('.p-cu-tot').click(function(){
+		var group
+		var classNames=this.className.split(' ')
+		console.log(classNames)
+		for(var i=0;i<classNames.length;++i){
+			console.log(classNames[i])
+			if(classNames[i].substr(0,3)=="cu-"){
+				group=classNames[i]
+				console.log('-> '+classNames[i])
+			}
+		}
+		console.log(group)
+		if($(this).hasClass('open')){
+			$('#curr-users').find('.p-cu.'+group).slideUp('slow')
+			$(this).removeClass('open').addClass('closed')
+		}else if($(this).hasClass('closed')){
+			$('#curr-users').find('.p-cu.'+group).slideDown('slow')
+			$(this).removeClass('closed').addClass('open')
+		}
+	})
 	$('.edit-d').click(function(e){
 		if($(this).hasClass('writing')){
 			$('.writing, .writing-row').removeClass('writing writing-row')
@@ -859,22 +879,6 @@ function setButtonsActions(){
 		$('.writing, .writing-row').removeClass('writing writing-row')
 		$('#edit-device').hide()
 		return false
-	})
-	$('.p-cu-tot').click(function(){
-		var group
-		var classNames=this.className.split(' ')
-		for(var i=0;i<classNames.length;++i){
-			if(classNames[i].substr(0,3)=="cu-"){
-				group=classNames[i]
-			}
-		}
-		if($(this).hasClass('open')){
-			$('#curr-users').find('.p-cu.'+group).slideUp('slow')
-			$(this).removeClass('open').addClass('closed')
-		}else if($(this).hasClass('closed')){
-			$('#curr-users').find('.p-cu.'+group).slideDown('slow')
-			$(this).removeClass('closed').addClass('open')
-		}
 	})
 	$('#blank-acon-device').click(function(){
 		var ip=$(this).attr('ip')

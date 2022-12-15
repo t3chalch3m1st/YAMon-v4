@@ -1,8 +1,7 @@
 # Notes on t3chalch3m1st/YAMon-v4 fork
-- Install files modified to use internal install files (changes to install.sh, getLatest.sh)
+- Install files modified to use internal install files (changes to install.sh; getLatest.sh)
 - WWW files modified to load local CSS/JS files (changes to www/)
-- Monthly breakdown graphs are showing
-- Live data is working (changes to setPaths.sh, update-live-data.sh ,/includes/paths.sh)
+- Live data is working (changes to setPaths.sh; update-live-data.sh; /includes/paths.sh)
 - Live data gui updated
 
 

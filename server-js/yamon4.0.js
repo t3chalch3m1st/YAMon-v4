@@ -1676,25 +1676,11 @@ function curr_users_totals(tt){
 	nr.find('.kbs-do').text((t_do/dt/g_toKB).toFixed(_dec))
 	nr.find('.cu_up').data('value',t_up)
 	nr.find('.kbs-up').text((t_up/dt/g_toKB).toFixed(_dec))
-	var oldUsersView=[]
 	var lt=old_last_update?old_last_update.split(' ')[1].replace(/:/gi,'-'):'00-00-00'
-	$('#curr-users .p-cu-tot').each(function(a,b){
-		if($(this).hasClass('open')){
-			var id=$(this).attr('id')
-			oldUsersView[a]=id
-		}
-	})
 	if($('#curr-users').find('#'+'cu-'+lt).length>0){
-		$('#curr-users').find('#'+'cu-'+lt).removeClass('current').addClass('past')
+		$('#curr-users').find('#'+'cu-'+lt).removeClass('current').addClass('past').removeClass('open').addClass('closed')
 		$('#curr-users').find('tr.p-cu.cu-'+lt).hide()
 	}
-	$('#curr-users .p-cu-tot').each(function(a,b){
-		var id=$(this).attr('id')
-		$('#curr-users').find('tr#'+id).hide()
-		if(oldUsersView.indexOf(id)!=-1){
-			$('#curr-users').find('tr#'+id).show()
-		}
-	})
 	nr.prependTo('#curr-users')
 	$('#curr-users-gt').data('value',$('#curr-users-gt').data('value')*1+dt)
 	$('#cu-gt-do').data('value',$('#cu-gt-do').data('value')*1+t_do)
