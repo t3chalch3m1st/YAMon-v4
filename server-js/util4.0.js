@@ -778,15 +778,11 @@ function setButtonsActions(){
 	$('.p-cu-tot').click(function(){
 		var group
 		var classNames=this.className.split(' ')
-		console.log(classNames)
 		for(var i=0;i<classNames.length;++i){
-			console.log(classNames[i])
 			if(classNames[i].substr(0,3)=="cu-"){
 				group=classNames[i]
-				console.log('-> '+classNames[i])
 			}
 		}
-		console.log(group)
 		if($(this).hasClass('open')){
 			$('#curr-users').find('.p-cu.'+group).slideUp('slow')
 			$(this).removeClass('open').addClass('closed')
