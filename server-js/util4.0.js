@@ -193,7 +193,7 @@ function setSettingsDefaults(){
 	$('#dbkey-clicked,#dbkey,#sv-btn,#p-useHTTPS,#p-autoSave')[typeof(_dbkey)=='undefined'?'hide':'show']()
 	$('#show-local').prop('checked',g_Settings['show-local']||false);
 	$('.show-local')[$('#show-local').is(':checked')?'show':'hide']()
-	$('#act-dest').text($('#show-local').is(':checked')?'All Destinations':'External Destinations Only')
+	$('#act-dest').text($('#show-local').is(':checked')?'Destination IP [ALL]':'Destination IP [EXTERNAL]')
 	$('#acc-filter-ip').val(g_Settings['acc-filter-ip']||document.domain);
 	$('#hmUpdateRows').val(g_Settings['hmUpdateRows']||10);
 	$('#hmUpdateRows').change(function(){
@@ -860,6 +860,39 @@ function setButtonsActions(){
 		$('#edit-device').hide()
 		return false
 	})
+	$('.p-cu-tot').click(function(){
+		var group
+		var classNames=this.className.split(' ')
+		for(var i=0;i<classNames.length;++i){
+			if(classNames[i].substr(0,3)=="cu-"){
+				group=classNames[i]
+			}
+		}
+		if($(this).hasClass('open')){
+			$('#curr-users').find('.p-cu.'+group).slideUp('slow')
+			$(this).removeClass('open').addClass('closed')
+		}else if($(this).hasClass('closed')){
+			$('#curr-users').find('.p-cu.'+group).slideDown('slow')
+			$(this).removeClass('closed').addClass('open')
+		}
+	})
+	$('#blank-acon-device').click(function(){
+		var ip=$(this).attr('ip')
+		var prot=$(this).attr('protocol')
+		if($(this).hasClass('open')){
+			$('#act-cons-body').find('.'+prot+'.ac-con[ip="'+ip+'"]').hide()
+			//$('.p-ac[protocol="'+prot+'"][ip="'+ip+'"]').removeClass('open').addClass('closed')
+			$(this).removeClass('open').addClass('closed')
+			$('.p-ac-prot[protocol="'+prot+'"][ip="'+ip+'"]').fadeOut(100)
+			$('.ac-con[protocol="'+prot+'"][ip="'+ip+'"]').slideUp(750)
+		}else if($(this).hasClass('closed')){
+			$('#act-cons-body').find('.'+prot+'.ac-con[ip="'+ip+'"]').show()
+			//$('.p-ac[protocol="'+prot+'"][ip="'+ip+'"]').removeClass('closed').addClass('open')
+			$(this).removeClass('closed').addClass('open')
+			$('.p-ac-prot[protocol="'+prot+'"][ip="'+ip+'"]').fadeIn(100)
+			$('.ac-con[protocol="'+prot+'"][ip="'+ip+'"]').slideDown(750)
+		}
+	})
 	$('#blank-devices-row')
 		.mouseenter(function (e) {
 			$(this).find('.edit-d').css('background-position', 'center -9px')
@@ -1338,7 +1371,6 @@ function setButtonsActions(){
 			
 			var factor=g_toGB
 			var fields=line.trim().split(' ')
-			//sio && console.log(isp, fields)
 			var mnf=0, daf=1, yrf=2, dof=3, upf=4
 			switch (isp) {
 				case 'ATT':
@@ -1348,29 +1380,28 @@ function setButtonsActions(){
 				case 'Cox':
 				case 'GCI':
 				case 'TekSavvy':
-				break
+					break
 				case 'Afrihost':
 					daf=0, mnf=1, dof=4, upf=5
 					factor=g_toMB
-				break
+					break
 				case 'Electronic_Box': 
 					yrf=0, mnf=1, daf=2
-				break
+					break
 				case 'Rogers':
 					factor=g_toMB
-				break
+					break
 				case 'Sodetel':
 					factor=g_toMB
 					dof=5, upf=6
-				break
-				break
+					break
 				case 'Telstra':
 					factor=g_toMB
 					daf=0, mnf=1, dof=2, upf=3, yrf=''
-				break
+					break
 				case 'Videotron': /* Videotron */
 					dof=2, upf=3, yrf=''
-				break
+					break
 			}
 			if(isNaN(fields[daf])) return false
 			return {dn:fields[daf], down:(fields[dof]*factor||0).toFixed(0), up:(fields[upf]*factor||0).toFixed(0), mn:fields[mnf], yr:fields[yrf]||-1}
@@ -1435,7 +1466,7 @@ function setButtonsActions(){
 	$('#show-local').click(function(){
 		$('.acon-row.odd').removeClass('odd')
 		var ic=$(this).is(':checked')
-		$('#act-dest').text(ic?'All Destinations':'External Destinations Only')
+		$('#act-dest').text(ic?'Destination IP [ALL]':'Destination IP [EXTERNAL]')
 		$('.dest-ip[title^="'+$('#acc-filter-ip').val()+'"],.dest-ip[title^="255.255."]').parents('.acon-row')[ic?'show':'hide']()
 		$('.show-local')[ic?'show':'hide']()
 		$('.acon-row:visible:odd').addClass('odd')
@@ -2953,7 +2984,7 @@ function exportTableToCSV(tablename) {
 }
 function nudge(msg){
 	getMessage(msg, '')
-	$('.dismiss button').unbind('click').click(function(){
+	$('.dismiss button').unbind('click').click(function(e){
 		var request=$.ajax({
 			url: domain+"current/dismiss"+_file_version+".php",
 			type: "POST",
@@ -2965,8 +2996,8 @@ function nudge(msg){
 				g_Settings.fnd=data.res
 				saveSettings(false)
 				$('.dismiss').slideUp('fast')
-				$('#pu-comment').text(data.msg).slideDown('slow').siblings().slideUp('fast')
-				$('#pop-up').delay(3600).slideUp('slow').fadeOut('slow')
+				$('#pu-comment').html(data.msg).slideDown('slow').siblings().slideUp('fast')
+				$('#pop-up').delay(5000).slideUp('slow').fadeOut('slow')
 			}
 			else {
 				alert( 'Something bad happened... wait a few minutes and try again or contact Al' );
@@ -2975,7 +3006,7 @@ function nudge(msg){
 		.fail(function(a,b,c){
 			//console.log( 'Something bad happened...',a,b,c )
 			$('.dismiss').slideUp('fast')
-			$('#pu-comment').text(data.msg).slideDown('slow').siblings().slideUp('fast')
+			$('#pu-comment').html(data.msg).slideDown('slow').siblings().slideUp('fast')
 			$('#pop-up').delay(3600).slideUp('slow').fadeOut('slow')
 		})
 	})

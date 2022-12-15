@@ -63,6 +63,7 @@ CurrentConnections_1()
 	local macIP=$(cat "$macIPFile")
 	
 	echo -e "\n/*current traffio by device:*/" >> $_liveFilePath
+	echo "curr_users=[" >> $_liveFilePath
 	while [ 1 ] ;
 	do
 		[ -z "$ipt" ] && break
@@ -80,14 +81,16 @@ CurrentConnections_1()
 			local up=$(echo "$ipt" | grep -E "$tip ($_generic_ipv4|$_generic_ipv6)" | cut -d' ' -f1)
 			local mac=$(echo "$macIP" | grep $tip | awk '{print $1}')
 			[ -z "$mac" ] && mac=$(GetMACbyIP "$tip")
-			echo "curr_users4({id:'$mac-$ip',down:'${do:-0}',up:'${up:-0}'})" >> $_liveFilePath
+			echo "{id:'$mac-$ip',down:'${do:-0}',up:'${up:-0}'}," >> $_liveFilePath
 			ipt=$(echo -e "$ipt" | grep -v "$tip")
 		fi
 	done
+	echo "];" >> $_liveFilePath
 	
 	local ddd=$(awk "$_conntrack_awk" "$_conntrack")
 	echo -e "\n/*current connections by ip:*/" >> $_liveFilePath
-	local err=$(echo "${ddd%,}]" 2>&1 1>> $_liveFilePath)
+	local err=$(echo "${ddd%,}" 2>&1 1>> $_liveFilePath)
+
 	#Send2Log "curr_connections >>>\n$ddd" 0
 	[ -n "$err" ] && Send2Log "ERROR >>> doliveUpdates:  $(IndentList "$err")" 3
 	$doArchiveLiveUpdates
@@ -96,7 +99,7 @@ CurrentConnections_1()
 loads=$(cat /proc/loadavg | cut -d' ' -f1,2,3 | tr -s ' ' ',')
 Send2Log ">>> loadavg: $loads"
 
-echo -e "var last_update='$_ds $_ts'${_nl}serverload($loads)" > $_liveFilePath
+echo -e "last_update='$_ds $_ts';${_nl}curr_serverloads=[$loads];" > $_liveFilePath
 
 $doCurrConnections
 

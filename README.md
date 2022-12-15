@@ -1,3 +1,9 @@
+# Notes on YAMon-v4
+- Install files modified to use internal install files
+- Monthly breakdown graphs are showing
+- Live data is working
+- Live data gui updated
+
 # YAMon-v4
 Official repository for YAMon v4
 

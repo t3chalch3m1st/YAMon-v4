@@ -142,7 +142,7 @@ _loglevel=0
 [ ! -d "${YAMON}includes" ] && mkdir -p "${YAMON}includes"
 getlatest="${YAMON}includes/getlatest.sh"
 _ts=$(date +"%s")
-yget "$getlatest" "$baseurl/$directory/YAMon4/Setup/includes/getlatest.sh?$_ts"
+#yget "$getlatest" "$baseurl/$directory/YAMon4/Setup/includes/getlatest.sh?$_ts"
 source "$getlatest"
 
 param='verify'

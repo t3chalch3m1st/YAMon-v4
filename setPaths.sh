@@ -132,10 +132,10 @@ echo -e "\n#Generic functions" >> "${pathsFile}"
 #paths
 	if [ -f "/proc/net/nf_conntrack" ] ; then
 		AddEntry '_conntrack' '/proc/net/nf_conntrack'
-		AddEntry '_conntrack_awk' 'BEGIN { printf "var curr_connections=["} { gsub(/(src|dst|sport|dport|bytes)=/, ""); if($3 == "tcp"){ printf "[\"%s\",\"%s\",%s,\"%s\",%s,%s],",$3,$7,$9,$8,$10,$12;} else if($3 == "udp"){ printf "[\"%s\",\"%s\",%s,\"%s\",%s,%s],",$3,$6,$8,$7,$9,$11;} else { printf "[\"%s\",\"%s\",,\"%s\",,%s],",$3,$6,$7,$9;} }'
+		AddEntry '_conntrack_awk' 'BEGIN { printf "curr_connections=[" } { gsub(/(con|src|dst|sport|dport|bytes)=/, ""); if($3 == "tcp"){ printf "{con:\"%s\",src:\"%s\",dst:\"%s\",sport:%s,dport:%s,bytes:%s},",$3,$7,$8,$9,$10,$12; } else if($3 == "udp"){ printf "{con:\"%s\",src:\"%s\",dst:\"%s\",sport:%s,dport:%s,bytes:%s},",$3,$6,$7,$8,$9,$11; } else { printf "{con:\"%s\",src:\"%s\",dst:\"%s\",sport:\"%s\",dport:\"%s\",bytes:\"%s\"},",$3,$6,$7,$8,$9,$11;} } END { printf "];" }'
 	else
 		AddEntry '_conntrack' '/proc/net/ip_conntrack'
-		AddEntry '_conntrack_awk' 'BEGIN { printf "var curr_connections=["} { gsub(/(src|dst|sport|dport|bytes)=/, ""); if($1 == "tcp"){ printf "[\"%s\",\"%s\",%s,\"%s\",%s,%s],",$1,$5,$7,$6,$8,$10;} else if($3 == "udp"){ printf "[\"%s\",\"%s\",%s,\"%s\",%s,%s],",$1,$4,$6,$5,$7,$9;} else { printf "[\"%s\",\"%s\",,\"%s\",,%s],",$1,$4,$5,$9;} }'
+		AddEntry '_conntrack_awk' 'BEGIN { printf "curr_connections=[" } { gsub(/(con|src|dst|sport|dport|bytes)=/, ""); if($3 == "tcp"){ printf "{con:\"%s\",src:\"%s\",dst:\"%s\",sport:%s,dport:%s,bytes:%s},",$3,$7,$8,$9,$10,$12; } else if($3 == "udp"){ printf "{con:\"%s\",src:\"%s\",dst:\"%s\",sport:%s,dport:%s,bytes:%s},",$3,$6,$7,$8,$9,$11; } else { printf "{con:\"%s\",src:\"%s\",dst:\"%s\",sport:\"%s\",dport:\"%s\",bytes:\"%s\"},",$3,$6,$7,$8,$9,$11;} } END { printf "];" }'
 	fi
 	
 	if [ "${_doLiveUpdates:-1}" -eq "1" ] ; then

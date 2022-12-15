@@ -6,14 +6,22 @@
 		<!--meta name="viewport" content="width=device-width"-->
 		<!--meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=3.0"-->
 		<title>YAMon:: Usage monitoring by group and device...</title>
+		<link rel="shortcut icon" href="images/favicon.png">
 		<meta name="description" content="Internet Usage Statistics" />
-		<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
-		<script type="text/javascript" src="js/config4.0.js"></script>
+		
+		<link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+		<link rel="stylesheet" type="text/css" href="css/normalize.css"/>
+		<link rel="stylesheet" type="text/css" href="css/yamon4.0.css"/>
+		<link rel="stylesheet" type="text/css" href="css/custom.css"/>
+		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-		<script defer type="text/javascript">
+		<script type="text/javascript">
 			var _html_version='4.0'
 			var _file_version='4.0'
+		</script>
+		<!--
+		<script type="text/javascript">
 			var args=window.location.search.replace('?','').split('&'),ver=args[1]||_file_version,domain='',path=''
 			if(typeof(_doLocalFiles)=='undefined'||_doLocalFiles=='0'){
 				path = (localStorage.getItem('devOrCurr') || 'current') + '/'
@@ -24,14 +32,13 @@
 			$("<link/>", {rel: "shortcut icon",href: domain + path + 'images/favicon.png'}).appendTo("head");
 			$.ajax({url: domain + path + 'js/jquery.md5.min.js', dataType: "script"});
 		</script>
+		-->
+		<script type="text/javascript" src="server-js/jquery.md5.min.js"></script>
 		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<!--
 		<script type="text/javascript">
-			google.charts.load('current', {packages: ['corechart']});
-		</script>
-		<script defer type="text/javascript">
 			if(!localStorage.getItem('ajaxCache')) localStorage.setItem('ajaxCache', 'true')
 			$.ajaxSetup({'cache':localStorage.getItem('ajaxCache')=='true'});  //Comment out this line if your router requires timestamps appended to data URLs
-			google.charts.load('current', {'packages':['corechart', 'gauge']});
 			$(document).ready(function(){
 				$.ajax({crossDomain: true, url: domain + path + 'js/util' + ver+ '.js',dataType: "script", cache:false})
 					.done(function(){
@@ -39,8 +46,10 @@
 					});
 			})
 		</script>
-
-		<link rel="stylesheet" type="text/css" href="css/custom.css"/>
+		-->
+		<script type="text/javascript" src="js/config4.0.js"></script>
+		<script type="text/javascript" src="server-js/util4.0.js"></script>
+		<script type="text/javascript" src="server-js/yamon4.0.js"></script>
 	</head>
 	<body>
 	<noscript class='alert'>This web application makes extensive use of JavaScript.  You must either enable JavaScript in your current browswer or upgrade to a JavaScript capable browser.</noscript>
@@ -80,6 +89,7 @@
 				<article id='help-tab' class='settings-tab btn p-a' title='Get Help!'></article>
 			</section>
 			<section id='main-body' class='p-r'>
+				<!--
 				<div class='_detanod' amount=20 title='Thank you in advance for your support!'>
 					<div class='submenu'>
 						<span class='amount btn' amount=10 title='Donate $10'>$10</span>
@@ -89,6 +99,7 @@
 						<span class='amount btn' amount='' title='Select this option to choose your own amount'>Other...</span>
 					</div>
 				</div>
+				-->
 				<div id='error-notification' class='p-r'>
 					<h1>This text will go away once all of the data has loaded.</h1>
 					<h2>Ah nuts!  An unexpected JavaScript error has prevented the reports from opening properly.<br/>
@@ -866,24 +877,20 @@
 						</article>
 						<article class='rc p-r' id='active-connections'>
 							<h2>
-								<span id='acrc'></span> Active Connections <span class='legend internal'>Internal</span><span class='legend tcp'>TCP</span><span class='legend udp'>UDP</span><span class='legend unknown'>Unknown</span>
+								<span id='acrc'></span> Current Connections <span class='legend internal'>Internal</span><span class='legend tcp'>TCP</span><span class='legend udp'>UDP</span><span class='legend unknown'>Unknown</span>
 							</h2>
 							<p id='acc-filter' class='p-filterIP hidden'>(filtered for <span class='filterIP btn clear-filter'></span>)</p>
 
 							<table class='info-top p-r' id="act-cons">
 								<thead>
 									<tr class='info-p p-r'>
-										<!--th class='br bl bt'>Con</th-->
-										<th class='bt bl'>Source
+										<th class='bt br bb bl' colspan='6'>
+											&nbsp;&nbsp;&nbsp;&nbsp;
 											<span class='info-w p-a'>
 												<span class='info btn'></span>
 												<span class='ts btn'></span>
 											</span>
 										</th>
-										<th class='br bt'>Port</th>
-										<th class='bt' id='act-dest'>Destination</th>
-										<th class='br bt'>Port</th>
-										<th class='br bt'>Bytes</th>
 									</tr>
 									<tr class='info-tr hidden'>
 										<td class='info-td p-a' colspan=100%>
@@ -908,11 +915,25 @@
 											</div>
 										</td>
 									</tr>
-									<tr id='blank-acon-row' class="acon-row hidden">
-										<!--td class="conn br bl"></td-->
+									<tr id='blank-acon-device' class='acon-row info-p p-r p-ac hidden'>
+										<td class="a-c bt bl br" colspan="6">
+											<div class="dev"></div>
+											<div class="prot"></div>
+										</td>
+									</tr>
+									<tr id='blank-acon-head' class='acon-row info-p p-r p-ac-prot hidden'>
+										<th class='bt bl'>Local Device</th>
+										<th class='br bl bt'>Protocol</th>
+										<th class='br bt'>Source Port</th>
+										<th class='bt' id='act-dest'>Destination IP</th>
+										<th class='br bt'>Destination Port</th>
+										<th class='br bt'>Bytes</th>
+									</tr>
+									<tr id='blank-acon-con' class="acon-row ac-con hidden">
 										<td class="src-ip a-l bl"></td>
+										<td class="conn a-c br bl"></td>
 										<td class="sprt a-c br"></td>
-										<td class="a-l p-r dest-ip btn"></td>
+										<td class="dest-ip a-c p-r btn"></td>
 										<td class="dprt a-c br"></td>
 										<td class="num br"></td>
 									</tr>
@@ -1617,5 +1638,11 @@
 
 		</div>
 		<footer>Yet Another Monitor (YAMon) - Al Caughey &copy; 2013-present, All rights reserved.<a class='a-r' href='https://usage-monitoring.com/privacy.php' target='_blank'>Privacy Policy</a></footer>
+	
+		
+		<script defer type="text/javascript">
+			google.charts.load('current', {'packages':['corechart', 'gauge']});
+		</script>
+
 	</body>
 </html>

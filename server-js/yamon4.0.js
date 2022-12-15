@@ -8,14 +8,15 @@
 #																		 #
 ##########################################################################
 HISTORY
-version 4.0.4 - 2019-12-28 - Al C - lots of bug fixes
-version 4.0.0 - 2015-11-16 - Al C - first iteration with the new features
+4.0.7 (2020-03-20) - finally got the gauges working on the summary page
+4.0.4 (2019-12-28) - lots of bug fixes
+4.0.0 (2015-11-16) - first iteration with the new features
 
 */
 var nDevicesReadFailures=0,nMonthlyReadFailures=0,nHourlyReadFailures=0,nLiveReadFailures=0
 var _dec,_settings_pswd
 var _rs_Date,_re_Date,_cr_Date
-var refreshTimer,liveUpdatesTimer,old_last_update
+var refreshTimer,liveUpdatesTimer,old_last_update,last_update
 var g_toKB,g_toMB,g_toGB
 var monthlyDataCap=null,g_nobwCap
 var g_Settings={}, g_IPii={}, g_Restrictions={}, g_SortedCIDR=[]
@@ -24,14 +25,14 @@ var devices=[],names=[],monthly=[],hourly=[],hourly_totals={},corrections=[],int
 var monthly_totals
 var pnd_data={'start':{'down':0,'up':0},'total':{'down':0,'up':0,'dropped':0,'local':0,'lost':0},'usage':[]}
 var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-var _unlimited_usage,_doLiveUpdates=1,_liveFileName='./js/live_data4.js',_doCurrConnections=1,_updatefreq=60,_organizeData=2,freeMem,availMem, totMem
+var _unlimited_usage,_doLiveUpdates=1,_liveFileName='./js/live_data4.js',_doCurrConnections=1,_updatefreq=60,_organizeData=2
 var dispUnits=['b','Kb','MB','GB','TB','PB']
 var livekbs_do,livekbs_up,s_usage,numLU=1
-var gauges,livekbs_do_chart,livekbs_up_chart,sl_chart;
+var gauges,livekbs_do_chart,livekbs_up_chart,sl_chart
 var g_base, darkmodeBG='#888'
 var maxGrWidth
-var ip2device={}
-var totMem=0,availMem=null,disk_utilization="0%",serverUptime=null
+var curr_serverloads=[0.0,0.0,0.0]
+var ip2device={},curr_connections=[],curr_users=[]
 var _slider_left=0,_slider_right=5
 var inDarkMode=false
 var colours_list=['DarkOliveGreen','Indigo','MediumPurple','Purple','MidnightBlue','DarkOrange','MediumSeaGreen','Red','Aqua','DarkOrchid','MediumSlateBlue','RosyBrown','AquaMarine','DarkRed','MediumSpringGreen','RoyalBlue','DarkSalmon','MediumTurquoise','SaddleBrown','DarkSeaGreen','LawnGreen','MediumVioletRed','Salmon','DarkSlateBlue','SandyBrown','DarkSlateGray','LightBlue','SeaGreen','DarkTurquoise','Blue','DarkViolet','Sienna','BlueViolet','DeepPink','Silver','Brown','DeepSkyBlue','Navy','SkyBlue','BurlyWood','DimGray','LightGreen','SlateBlue','CadetBlue','DodgerBlue','LightPink','Olive','SlateGray','Chartreuse','FireBrick','LightSalmon','OliveDrab','Chocolate','LightSeaGreen','Orange','SpringGreen','Coral','ForestGreen','LightSkyBlue','OrangeRed','SteelBlue','CornFlowerBlue','Fuchsia','LightSlateGray','Orchid','Tan','LightSteelBlue','PaleGoldenRod','Teal','Crimson','PaleGreen','Thistle','Cyan','Gold','Lime','PaleTurquoise','Tomato','DarkBlue','GoldenRod','LimeGreen','PaleVioletRed','Turquoise','DarkCyan','Gray','Violet','DarkGoldenRod','Green','Magenta','PeachPuff','Wheat','DarkGray','GreenYellow','Maroon','Peru','DarkGreen','MediumAquaMarine','Pink','DarkKhaki','HotPink','MediumBlue','Plum','Yellow','DarkMagenta','IndianRed','MediumOrchid','PowderBlue','YellowGreen','Ivory','Beige','WhiteSmoke','Bisque','Linen','OldLace','LightCoral','Lavender','Azure','Black','PapayaWhip','LightYellow','FloralWhite','LemonChiffon','AntiqueWhite','MintCream','SeaShell','LavenderBlush','LightCyan','LightGoldenrodYellow','BlanchedAlmond','MistyRose','NavajoWhite','Khaki','Moccasin','LightGray','Cornsilk','Gainsboro','HoneyDew','GhostWhite','White','AliceBlue','Snow'],n_colours=colours_list.length
@@ -45,7 +46,8 @@ $(document).ready(function (){
 
 	$('.html_version').text(_html_version)
 	if(typeof(_version)=='undefined'){
-		_version=4.0
+		var _version=4.0 //should never get this because _version should be defined in config4.js?!?
+		//To-do - add a getmessage alert that config4.js is not properly configured?!?
 	}
 	$('.scriptVersion').text(_version)
 	_organizeData=2 //To-Do - eliminate references to _organizeData
@@ -72,24 +74,24 @@ $(document).ready(function (){
 	$('#sp_minSL').attr('id','sp_15minSL')
 	addISPList()
 	maxGrWidth=Math.min(1000, $('.tab-div').css('width').replace('px','')-44)
-	freeMem=freeMem||0
-	availMem=availMem||0
-	totMem=totMem||0
 
 	resetdates()
 	//setReportDates()
 	var SettingsLoaded =  loadSettings();
 	SettingsLoaded.done(function () {
+		
+		/* Skip External Reuests 
 		if (g_Settings['router']==null){
-			getMessage('v4 beta');
-			uploadRouterJS('save router')
+			//getMessage('v4 beta');
+			//uploadRouterJS('save router')
 		}
 		else if(g_Settings['router']['share']=='1' && _updated!=g_Settings['router']['updated']){
-			uploadRouterJS('updated router')
+			//uploadRouterJS('updated router')
 		}
 		else if(g_Settings['router']['share']==0){
 			$('.shareRouter').parents('p').show()
-		}
+		}*/
+		$('.shareRouter').parents('p').show() //
 
 		checkConfig()
 		setSettingsDefaults()
@@ -354,10 +356,7 @@ function loadHourly(cleardata){
 	})
 	//$('#DailyData').html('')
 	$('#DailyData .is_d').addClass('clear')
-	serverUptime=null
-	availMem=null
-	totMem=0
-	disk_utilization="0%"
+	
 	var dn=_cr_Date.getDate()*1, da=twod(dn)
 	var mo=twod(_cr_Date.getMonth()-(-1))
 	var yr=_cr_Date.getFullYear()
@@ -400,7 +399,7 @@ function loadHourly(cleardata){
 	$.getScript(datafile)
 	.done(function(dlist,textStatus){
 		$('#DailyUsageHeader .icon').attr('title', 'View the contents of the hourly usage data file').data('link', datafile)
-		$('#uptime').text(!serverUptime?'n/a':sec2text(serverUptime))
+		//To-do... get uptime from old v3 data files
 		
 		if(typeof(users_updated)==='undefined') var users_updated=''
 		$('#sp_users_updated').text(lastmod(users_updated,'')).attr('title',users_updated)
@@ -482,6 +481,8 @@ function loadHourly(cleardata){
 			$('.hwncd').hide()
 		}
 		updateDashboard()
+		//To-do --> drawSummaryGauges() using the v3 data
+		//drawSummaryGauges(disk_utilization, freeMem+','+availMem+','+totMem) // won't work for with v4 data files
 		var cmo=_rs_Date.getMonth()*1
 		if(_rs_Date.getDate()!=_ispBillingDay)cmo--
 		var ry=_rs_Date.getFullYear(),rm=twod(cmo+1),rd=twod(_ispBillingDay),bill=ry+'-'+rm+'-'+rd,mts=monthly_totals.up+';'+monthly_totals.down
@@ -503,7 +504,8 @@ function loadHourly(cleardata){
 			g_Settings['history'][bill]['ul_up']=monthly_totals.ul_up
 		}
 		if(monthlyDataCap==null && g_Settings['history'][bill]['monthlyDataCap']==null){
-			monthlyDataCap = prompt('Enter the cap for this month:', 0)
+			//monthlyDataCap = prompt('Enter the cap for this month:', 0)
+			monthlyDataCap = 0
 			g_Settings['history'][bill]['monthlyDataCap']=monthlyDataCap
 		}
 		else if(g_Settings['history'][bill]['monthlyDataCap']==null){
@@ -511,28 +513,6 @@ function loadHourly(cleardata){
 		}
 		saveSettings()
 
-		var du=(disk_utilization.replace('%','')*1).toFixed(_dec)
-		var mf=totMem==0?0:((1-(freeMem)/totMem)*100).toFixed(_dec),gaugeOptions={animation:{duration:2000,easing:'inAndOut'},width:200,height:80,greenFrom:0,greenTo:74,yellowFrom:75,yellowTo:90,redFrom:90,redTo:100,minorTicks:5}
-		if (!google||!google.visualization||!google.visualization.arrayToDataTable){
-			//console.log('Error - google.visualization.arrayToDataTable')
-		}
-		else{
-			gauges=new google.visualization.Gauge(document.getElementById('gauges'));
-			if(!availMem){
-				var data=google.visualization.arrayToDataTable([['Label','Value'],['Disk',du*1],['Memory',mf*1]])
-				gauges.draw(data,gaugeOptions)
-				$("#gauges td:nth-child(3)").remove()
-			}
-			else{
-				var ma=totMem==0?0:((1-(availMem)/totMem)*100).toFixed(_dec)
-				var data=google.visualization.arrayToDataTable([['Label','Value'],['Disk',du*1],['Avail.',ma*1],['Memory',mf*1]])
-				gaugeOptions.width=300
-				gauges.draw(data,gaugeOptions)
-			}
-		}
-		$("#gauges td:first").attr('title','Disk Utilization: '+du+'%')
-		$("#gauges td:nth-child(2)").attr('title','Available Memory: '+ma+'% ('+availMem+' bytes)')
-		$("#gauges td:last").attr('title','Memory Utilization: '+mf+'% ('+freeMem+' bytes free)')
 		setSummaryTotals()
 		nHourlyReadFailures=0
 
@@ -563,7 +543,7 @@ function loadHourly(cleardata){
 		$("#mb-filter").val(sel)
 
 		clearLoading()
-		var dii=Math.floor((_re_Date-_rs_Date)/(1000*60*60*24)),cdii=Math.floor((_cr_Date-_rs_Date)/(1000*60*60*24))
+		var dii=Math.floor((_re_Date-_rs_Date)/(1000*60*60*24)), cdii=Math.floor((_cr_Date-_rs_Date)/(1000*60*60*24))
 		$( ".report-date" ).slider('option','max',dii)
 		$( ".report-date" ).slider('option','value',cdii)
 		var cw=$('.current-date').textWidth(),mw=$('.sp-current-date').width()-_slider_right,nd=$('.report-date').slider('option','max')-1,os=(mw-cw)/dii+_slider_left
@@ -632,7 +612,10 @@ function loadView(cleardata){
 			break;
 		case 'live-tab':
 			if(_doLiveUpdates=='1'){
-				setLiveUpdates()
+				if(!sl_chart)
+					setUpLiveCharts()
+				else
+					setLiveUpdates()
 				clearInterval(liveUpdatesTimer);
 				liveUpdatesTimer=setInterval(setLiveUpdates,1000*_updatefreq)
 			}
@@ -881,7 +864,7 @@ function hu(arr){
 		chu(mac)
 	}
 	var hr=arr.hour*1,down=arr.down*1,up=arr.up*1
-
+	if (!hourly_totals.usage[hr]) hourly_totals.usage[hr]={down:0,up:0}
 	hourly[mac].down+=down
 	hourly[mac].up+=up
 	hourly[mac].usage[hr].down+=down
@@ -1503,6 +1486,15 @@ function setLiveUpdates(){
 		headers: { 'Cache-Control':'no-cache, no-store' }
 	})
 	.done(function( script,textStatus ) {
+		//console.log(script)
+		clear_users()
+		clear_conns()
+		eval(script) //
+		
+		serverload(curr_serverloads[0],curr_serverloads[1],curr_serverloads[2])
+		for(var user in curr_users){
+			add_user(curr_users[user])
+		}
 		$('.p-hr .icon').attr('title', 'View the contents of this `live` data file').data('link', _liveFileName)
 		var tt=last_update.split(' ')[1]
 		curr_users_totals(tt)
@@ -1524,30 +1516,89 @@ function setLiveUpdates(){
 		}
 	})
 }
+function sortConnections(a, b){
+	if(a.src < b.src){
+        return -1;  
+    }else if(a.src > b.src){
+        return 1;
+    }else{
+        if(a.con < b.con){
+           return -1
+        }else if(a.con > b.con){
+          return 1;
+        }else{
+          return 0;
+        }
+    }
+}
 function activeConnections(){
 	if(_doCurrConnections==0) return
 	var filterIP=$('.filterIP:first').text()
 	$('.clear-filter,.p-filterIP')[filterIP==''?'fadeOut':'fadeIn']('slow')
+	var oldConView=[]
+	$('#act-cons-body .p-ac').each(function(a,b){
+		var ip=$(this).attr('ip')
+		var prot=$(this).attr('protocol')
+		if($(this).hasClass('open'))
+			oldConView[ip]={prot}
+	})
 	$('#act-cons-body').html('')
 	var	slic=$('#show-internal').is(':checked')
 	var replace = ($('#acc-filter-ip').val()).replace(/[\s,]/g,"|")
 	var re = new RegExp(replace,"g");
-	$(curr_connections).sort(byIP).each(function (a, b) {
-		if (!b[1]) return
-		var sip = b[1].replace(/\:0/gi, ":"),dip = b[3]
+	var tconlist=[]
+	$(curr_connections).sort(sortConnections).each(function(a,b) {
+		if (!b.src) return
+		var sip = b.src.replace(/\:0/gi, ":"),dip = b.dst
 		if (!dip) return
 		if (filterIP == '' || filterIP == sip || filterIP == dip) {
-			
 			var int_s=sip.match(re),int_d=dip.match(re)
 			var slon=!!int_s&&!!int_d?'internal':''
-			var nr = $('#blank-acon-row').clone(true,true).removeAttr('id').removeClass('hidden').addClass(slon+' '+ b[0])
-			nr.find('.src-ip').text(ip2device[sip] || 'unknown: ' + sip).attr('title', sip)
-			nr.find('.sprt').text(b[2])
+			if(!tconlist[sip]){
+				if(a>0){
+					var br = $('#blank-acon-row').clone(true,true).removeAttr('id').removeClass('hidden').removeClass('ac-con').addClass('p-sp')
+					br.html('<td class="bt br bl" style="height:10px;" colspan="6"></td>')
+					br.appendTo('#act-cons-body')
+				}
+				tconlist[sip]={"tcp":0,"udp":0,"unknown":0}	
+			}
+			if(b.con=="tcp"&&tconlist[sip].tcp==0||b.con=="udp"&&tconlist[sip].udp==0||b.con=="unkown"&&tconlist[sip].udp==0){
+				var nh = $('#blank-acon-device').clone(true,true).removeAttr('id').removeClass('hidden').attr('protocol',b.con).attr('ip',sip).addClass(b.con).addClass('closed')
+				nh.find('.dev').text((ip2device[sip]||'unknown')+' : '+sip)
+				nh.find('.prot').html('<span></span> - '+b.con.toUpperCase()+' connections')
+				nh.appendTo('#act-cons-body')
+				if(oldConView[sip]&&oldConView[sip].prot==b.con)
+					nh.removeClass('closed').addClass('open')
+				var nh = $('#blank-acon-head').clone(true,true).removeAttr('id').removeClass('hidden').attr('protocol',b.con).attr('ip',sip).addClass(b.con).addClass('closed')
+				nh.appendTo('#act-cons-body').hide()
+				if(oldConView[sip]&&oldConView[sip].prot==b.con)
+					nh.show().removeClass('closed').addClass('open')
+			}
+			var nr = $('#blank-acon-con').clone(true,true).removeAttr('id').removeClass('hidden').attr('ip',sip).addClass(slon+' '+ b.con)
+			nr.find('.src-ip').removeClass('a-l').addClass('a-c').text((ip2device[sip]||'unknown')+' : '+sip).attr('title', sip)
+			nr.find('.conn').text(b.con)
+			nr.find('.sprt').text(b.sport)
 			nr.find('.dest-ip').attr('data-ip', dip).attr('data-ipn', ip2i(dip)).addClass('nomatch')
-			nr.find('.dprt').text(b[4])
-			nr.find('.num').data('value',b[5]).text(b[5])
-			nr.appendTo('#act-cons-body')
+			nr.find('.dprt').text(b.dport)
+			nr.find('.num').data('value',b.bytes).text(b.bytes)
+			nr.appendTo('#act-cons-body').hide()
+			if(oldConView[sip]&&oldConView[sip].prot==b.con)
+				nr.show().removeClass('closed').addClass('open')
+			if(b.con.trim()=="tcp")
+				tconlist[sip]={"tcp":tconlist[sip].tcp+1,"udp":tconlist[sip].udp,"unknown":tconlist[sip].unknown}
+			else if(b.con.trim()=="udp")
+				tconlist[sip]={"tcp":tconlist[sip].tcp,"udp":tconlist[sip].udp+1,"unknown":tconlist[sip].unknown}
+			else if(b.con.trim()=="unknown")
+				tconlist[sip]={"tcp":tconlist[sip].tcp,"udp":tconlist[sip].udp,"unknown":tconlist[sip].unknown+1}
 		}
+	})
+	$('.p-ac').each(function(a,b){
+		var ip=$(this).attr('ip')
+		var tcon_count=0
+		var prot=$(this).attr('protocol')
+		var pcon_count=$('.ac-con.'+prot+'[ip="'+ip+'"]').length;
+		$(this).find('span').text(pcon_count)
+		tcon_count+=pcon_count
 	})
 	$('.dest-ip:visible').each(function(){
 		var nip=$(this).data('ipn'), found=null
@@ -1573,31 +1624,14 @@ function activeConnections(){
 	$('.legend.internal').attr('data-count',$('.acon-row.internal').length)
 	//$('.ipfnd').unbind('click') 
 
-	$('#acrc').text($('.acon-row:visible').length)
+	$('#acrc').text(curr_connections.length-1)
 	if(filterIP!=''){
 		$('#acc-filter-num').text($('.acon-row:visible').length)
 		$('#acc-filter-name').text($('.filter:first .cu-o').text()+'-'+$('.filter:first .cu-d').text())
 		$('#acc-filter').slideDown('slow')
 	}
 }
-function curr_users(arr){
-	var tt=last_update.split(' ')[1]
-	if(old_last_update==last_update) return
-	var mac=arr.mac.toLowerCase(), dg=!devices[mac]?'Unknown group':devices[mac].group, dn=!devices[mac]?'Unknown device':devices[mac].name
-	var tt_id='cu-'+tt.replace(/:/gi,'-')
-	var dt=old_last_update?(Date.parse(last_update)-Date.parse(old_last_update))/1000:_updatefreq
-	var fltr=arr.ip==$('.filterIP:first').text()?' filter':''
-	var nr=$('#blank-cu').clone(true,true).removeAttr('id').attr('ip',arr.ip).attr('data-mac',arr.mac).attr('title',arr.ip).addClass('p-cu '+tt_id+fltr).removeClass('hidden')
-	nr.find('.cu-o').text(dg)
-	nr.find('.cu-d').text(dn)
-	nr.find('.cu_do').data('value',arr.down)
-	nr.find('.cu_do_ps').text((arr.down/dt/g_toKB).toFixed(_dec))
-	nr.find('.cu_up').data('value',arr.up)
-	nr.find('.cu_up_ps').text((arr.up/dt/g_toKB).toFixed(_dec))
-	nr.prependTo('#curr-users')
-	ip2device[arr.ip]=dn
-}
-function curr_users4(arr){
+function add_user(arr){
 	var tt=last_update.split(' ')[1]
 	if(old_last_update==last_update) return
 	var id=arr.id.split('-')
@@ -1615,6 +1649,8 @@ function curr_users4(arr){
 	nr.find('.cu_do_ps').text((down/dt/g_toKB).toFixed(_dec))
 	nr.find('.cu_up').data('value',up)
 	nr.find('.cu_up_ps').text((up/dt/g_toKB).toFixed(_dec))
+	if($('.no-current-users').length>0)
+		$('.no-current-users').remove()
 	nr.prependTo('#curr-users')
 	ip2device[ip]=dn
 	$('.no-current-users').remove()
@@ -1626,13 +1662,13 @@ function curr_users_totals(tt){
 	if($('#'+tt_id).length>0) return
 	var ncu=$('.'+tt_id).length
 	if(ncu==0) return
-	$('#curc').text(ncu + " Current Device" + (ncu==1?"":'s'))
+	$('#curc').text(ncu + " Active Device" + (ncu==1?"":'s'))
 	var t_do=0,t_up=0
 	$('.'+tt_id).each(function(){
 		t_do+=$(this).find('.cu_do').data('value')*1
 		t_up+=$(this).find('.cu_up').data('value')*1
 	})
-	var nr=$('#blank-cu-tot').clone(true,true).attr('id',tt_id).addClass(tt_id).removeClass('hidden')
+	var nr=$('#blank-cu-tot').clone(true,true).attr('id',tt_id).addClass(tt_id).removeClass('hidden').addClass('current').addClass('open')
 	nr.find('.td-time').text(tt).attr('title', last_update + ' / ' + dt )
 	nr.find('.cu-o').text('# devices: '+ncu)
 	nr.find('.cu-d').text('# connections: '+(curr_connections.length-1))
@@ -1640,6 +1676,25 @@ function curr_users_totals(tt){
 	nr.find('.kbs-do').text((t_do/dt/g_toKB).toFixed(_dec))
 	nr.find('.cu_up').data('value',t_up)
 	nr.find('.kbs-up').text((t_up/dt/g_toKB).toFixed(_dec))
+	var oldUsersView=[]
+	var lt=old_last_update?old_last_update.split(' ')[1].replace(/:/gi,'-'):'00-00-00'
+	$('#curr-users .p-cu-tot').each(function(a,b){
+		if($(this).hasClass('open')){
+			var id=$(this).attr('id')
+			oldUsersView[a]=id
+		}
+	})
+	if($('#curr-users').find('#'+'cu-'+lt).length>0){
+		$('#curr-users').find('#'+'cu-'+lt).removeClass('current').addClass('past')
+		$('#curr-users').find('tr.p-cu.cu-'+lt).hide()
+	}
+	$('#curr-users .p-cu-tot').each(function(a,b){
+		var id=$(this).attr('id')
+		$('#curr-users').find('tr#'+id).hide()
+		if(oldUsersView.indexOf(id)!=-1){
+			$('#curr-users').find('tr#'+id).show()
+		}
+	})
 	nr.prependTo('#curr-users')
 	$('#curr-users-gt').data('value',$('#curr-users-gt').data('value')*1+dt)
 	$('#cu-gt-do').data('value',$('#cu-gt-do').data('value')*1+t_do)
@@ -1833,6 +1888,29 @@ function hourlyData4(arr){
 	hourly[mac].ul_up+=1*traff[3]||0
 	hourly[mac].usage[hr]={down:1*traff[0]||0,up:1*traff[1]||0,ul_down:1*traff[2]||0,ul_up:1*traff[3]||0}
 }
+
+function drawSummaryGauges(du, mem){
+	var du=(du.replace('%','')*1)
+	var m=mem.split(',')
+	$("#sp-freeMem").text(mem[0])
+	if (!google||!google.visualization||!google.visualization.arrayToDataTable){
+		//console.log('Error - google.visualization.arrayToDataTable')
+	}
+	else{
+		var mf=((1-(m[0])/m[2])*100).toFixed(0)
+		var ma=((1-(m[1])/m[2])*100).toFixed(0)
+
+		gauges=new google.visualization.Gauge(document.getElementById('gauges'));
+		var data=google.visualization.arrayToDataTable([['Label','Value'],['Disk',du*1],['Avail.',ma*1],['Memory',mf*1]])
+		var gaugeOptions={animation:{duration:2000,easing:'inAndOut'},width:200,height:80,greenFrom:0,greenTo:74,yellowFrom:75,yellowTo:90,redFrom:90,redTo:100,minorTicks:5}
+		gaugeOptions.width=300
+		gauges.draw(data,gaugeOptions)
+	}
+	$("#gauges td:first").attr('title','Disk Utilization: '+du+'%')
+	$("#gauges td:nth-child(2)").attr('title','Available Memory: '+ma+'% ('+m[1]+' bytes)')
+	$("#gauges td:last").attr('title','Memory Utilization: '+mf+'% ('+m[0]+' bytes free)')
+}
+	
 function Totals(arr){
 	//Totals({ "hour":"00", "uptime":"1940773.59", "interval":"570322357,8898462","interfaces":'[ {"n":"guest_turris_0", "t":"336,0"}, {"n":"wlan0", "t":"62402580,1547435"}, {"n":"eth1", "t":"1328688,59660357"}, {"n":"wlan1", "t":"238778,52878"}, {"n":"br-lan", "t":"61414914,1516318"}, {"n":"br-guest_turris", "t":"0,0"}]',"memory":'{19452,712680,1030692}',"disk_utilization":'61%' })
 	//if (!hourly[mac]) hourly[mac]={down:0,up:0,ul_down:0,ul_up:0,usage:{}}
@@ -1854,9 +1932,9 @@ function Totals(arr){
 	pnd_data.usage=o2u.usage
 	var mem=(arr.memory).replace(/[{}]/g,"").split(',')
 	hourly_totals.memory[hr]=mem
-	$("#sp-freeMem").text(mem[0])
-	totMem=mem[2]
-	disk_utilization=arr.disk_utilization
+	drawSummaryGauges(arr.disk_utilization, arr.memory )
+	$('#uptime').text(sec2text(arr.uptime))
+
 }
 
 function GrandTotalDaily(arr){
@@ -1881,4 +1959,11 @@ function GrandTotalDaily(arr){
 	pnd_data.total.down+=o2u.down
 	pnd_data.total.up+=o2u.up
 	pnd_data.usage[dn]=o2u.usage[dn]
+}
+
+function clear_conns() {
+	curr_connections=[]
+}
+function clear_users() {
+	curr_users=[]
 }

@@ -66,57 +66,58 @@ err_num=0
 [ -z "$directory" ] && directory='current'
 echo "
 Downloading the latest version of:"
-getlatest 'includes/version.sh' 1
-getlatest 'default_config.file'
+#getlatest 'includes/version.sh' 1
+_version='4.0.7'
+#getlatest 'default_config.file'
 
-getlatest 'includes/dailytotals.sh'
-getlatest 'includes/fixes.sh'
-getlatest 'includes/prompts.sh' 1
-getlatest 'includes/setupIPChains.sh'
+#getlatest 'includes/dailytotals.sh'
+#getlatest 'includes/fixes.sh'
+#getlatest 'includes/prompts.sh' 1
+#getlatest 'includes/setupIPChains.sh'
 
 showEcho=1 # to prevent redirection of all output to the logs
-getlatest "includes/shared.sh"
-getlatest 'includes/start-stop.sh'
-getlatest 'includes/traffic.sh'
+#getlatest "includes/shared.sh"
+#getlatest 'includes/start-stop.sh'
+#getlatest 'includes/traffic.sh'
 
-getlatest 'alias.sh'
-getlatest 'block.sh'
-getlatest 'calculate-daily-totals.sh'
-getlatest 'changes.log'
-getlatest 'check-network.sh'
-getlatest 'clear-iptables.sh'
-getlatest 'compare.sh'
-getlatest 'copy-log.sh'
-getlatest 'end-of-hour.sh'
-getlatest 'end-of-day.sh'
-getlatest 'getACRules.sh'
-getlatest 'in-unlimited.sh'
-getlatest 'new-billing-interval.sh'
-getlatest 'new-day.sh'
-getlatest 'new-hour.sh'
-getlatest 'pause.sh'
-getlatest 'purge.sh'
-getlatest 'run-fixes.sh'
-getlatest 'setPaths.sh'
-getlatest 'start.sh'
-getlatest 'update-live-data.sh'
-getlatest 'update-reports.sh'
-getlatest 'up-rev-users-js.sh'
-getlatest 'validate.sh'
-getlatest "setup$_version.sh"
+#getlatest 'alias.sh'
+#getlatest 'block.sh'
+#getlatest 'calculate-daily-totals.sh'
+#getlatest 'changes.log'
+#getlatest 'check-network.sh'
+#getlatest 'clear-iptables.sh'
+#getlatest 'compare.sh'
+#getlatest 'copy-log.sh'
+#getlatest 'end-of-hour.sh'
+#getlatest 'end-of-day.sh'
+#getlatest 'getACRules.sh'
+#getlatest 'in-unlimited.sh'
+#getlatest 'new-billing-interval.sh'
+#getlatest 'new-day.sh'
+#getlatest 'new-hour.sh'
+#getlatest 'pause.sh'
+#getlatest 'purge.sh'
+#getlatest 'run-fixes.sh'
+#getlatest 'setPaths.sh'
+#getlatest 'start.sh'
+#getlatest 'update-live-data.sh'
+#getlatest 'update-reports.sh'
+#getlatest 'up-rev-users-js.sh'
+#getlatest 'validate.sh'
+#getlatest "setup$_version.sh"
 [ -f "${YAMON}setup.sh" ] && rm "${YAMON}setup.sh"
 ln -s "${YAMON}setup$_version.sh" "${YAMON}setup.sh"
 
-[ ! -d "${YAMON}strings/${_lang:-en}" ] && mkdir -p "${YAMON}strings/${_lang:-en}"
-getlatest "strings/title.inc" 1
-getlatest "strings/${_lang:-en}/strings.sh" 1
+#[ ! -d "${YAMON}strings/${_lang:-en}" ] && mkdir -p "${YAMON}strings/${_lang:-en}"
+#getlatest "strings/title.inc" 1
+#getlatest "strings/${_lang:-en}/strings.sh" 1
 
-[ ! -d "${YAMON}www" ] && mkdir -p "${YAMON}www"
-[ ! -d "${YAMON}www/js" ] && mkdir -p "${YAMON}www/js"
-[ ! -d "${YAMON}www/css" ] && mkdir -p "${YAMON}www/css"
-[ ! -d "${YAMON}www/images" ] && mkdir -p "${YAMON}www/images"
-getlatest "www/yamon${_version%\.*}.html"
-getlatest "www/css/custom.css"
+#[ ! -d "${YAMON}www" ] && mkdir -p "${YAMON}www"
+#[ ! -d "${YAMON}www/js" ] && mkdir -p "${YAMON}www/js"
+#[ ! -d "${YAMON}www/css" ] && mkdir -p "${YAMON}www/css"
+#[ ! -d "${YAMON}www/images" ] && mkdir -p "${YAMON}www/images"
+#getlatest "www/yamon${_version%\.*}.html"
+#getlatest "www/css/custom.css"
 
 echo -e "\n*************************\nSet execute permissions..." >&2
 chmod -R +x "${YAMON}"

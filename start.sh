@@ -61,6 +61,8 @@ SetWebDirectories()
 	#ln -s /tmp/www /www/yamon
 	AddSoftLink "${d_baseDir}/www/css" "${_wwwPath}css"
 	AddSoftLink "${d_baseDir}/www/images" "${_wwwPath}images"
+	AddSoftLink "${d_baseDir}/www/server-js" "${_wwwPath}server-js"
+	AddSoftLink "${d_baseDir}/server-js" "${d_baseDir}/www/server-js"
 	[ "$_wwwData" == 'data3/' ] && _wwwData=''
 	AddSoftLink "${_path2data%/}" "${_wwwPath}${_wwwData:-data4}"
 	AddSoftLink "${_path2logs%/}" "${_wwwPath}logs"
